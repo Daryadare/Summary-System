@@ -1,6 +1,6 @@
 import re
 import sys
-from ressys import (do_ffmpeg, whisper,
+from ressys import (do_ffmpeg, do_pypandoc, whisper,
                     fred_t5_sum, rugpt3_large,
                     convert_to_text)
 import warnings
@@ -61,10 +61,26 @@ def make_summarization(cleaned_text_sum: str):
 if __name__ == "__main__":
 
     outputs_to_write = []
-    f_path = str(input('Введите путь к аудио- или видеофайлу, для которого вы хотите получить '
-                       'транскрипцию: '))
-    new_filepath, fdir, res_w_ts, cleaned_text_sum = make_transcription(f_path)
-    outputs_to_write.append(res_w_ts)
+    sys_type = str(input('Введите цифру соответствующую, типу данных,'
+                         'с которым вы хотите работать: \n 1. Аудио- или видеофайл \n '
+                         '2. Текстовый файл \n'))
+
+    if sys_type == '1':
+        f_path = str(input('Введите путь к аудио- или видеофайлу, для которого вы хотите получить '
+                           'транскрипцию: '))
+        new_filepath, fdir, res_w_ts, cleaned_text_sum = make_transcription(f_path)
+        outputs_to_write.append(res_w_ts)
+
+    else:
+        f_path = str(input('Введите путь к текстовому файлу, включая его название,'
+                           ' для которого вы хотите получить суммаризацию: \n'))
+        # new_filepath, fdir, res_w_ts, cleaned_text_sum = make_transcription(f_path)
+
+        new_filepath, fdir, path_status, text_for_sum = do_pypandoc.convert_textfile(f_path)
+        if path_status == 1:
+            print('Ваш файл был успешно преобразован к необходимому формату .txt!')
+        else:
+            print('Ваш файл изначально соответствовал необходимому формату .txt!')
 
     print('Идет процесс резюмирования данных...')
     res_sum = make_summarization(cleaned_text_sum)
