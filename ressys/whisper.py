@@ -1,3 +1,4 @@
+import re
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 import warnings
@@ -17,6 +18,22 @@ def load_model_processor():
 
     return model, processor, torch_dtype
 
+def clean_whisper_output(res_w: str) -> tuple[str, str]:
+    clean_text = res_w[:res_w.find('chunks')]
+    pattern = r"'text': '([^']+)'"
+    matches = re.findall(pattern, clean_text)
+    text_sum = ' '.join(matches)
+
+    chunks_text = res_w[res_w.find('chunks'):res_w.rfind('}]}')]
+    res_w_ts = ''
+    pattern = r"'timestamp': \((\d+\.\d+), (\d+\.\d+)\), 'text': '([^']+)'"
+    matches = re.findall(pattern, chunks_text)
+    cleaned_strings = [f"({start}, {end}) {text}" for start, end, text in matches]
+    for string in cleaned_strings:
+        res_w_ts += string
+
+    return res_w_ts, text_sum
+
 
 def transcribe(filepath: str):
 
@@ -32,7 +49,6 @@ def transcribe(filepath: str):
         batch_size=32,
         return_timestamps=True,
         torch_dtype=torch_dtype,
-        # device=device,
     )
 
     result = pipe(filepath,
