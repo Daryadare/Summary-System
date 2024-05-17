@@ -9,7 +9,8 @@ def make_summ(input_text: str, tokens_size: int):
                                               eos_token='</s>')
     model = T5ForConditionalGeneration.from_pretrained('RussianNLP/FRED-T5-Summarizer')
 
-    input_ids = torch.tensor([tokenizer.encode(input_text)])
+    prompt = '<LM> Выдели главную информацию из текста:\n' + input_text
+    input_ids = torch.tensor([tokenizer.encode(prompt)])
     outputs = model.generate(input_ids,
                              eos_token_id=tokenizer.eos_token_id,
                              num_beams=5,
