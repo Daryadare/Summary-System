@@ -1,8 +1,6 @@
 import sys
 from models import whisper, fred_t5_sum, rugpt3_large
 from tools import do_ffmpeg, do_pypandoc, convert_to_text
-import warnings
-warnings.filterwarnings("ignore")
 
 
 if __name__ == "__main__":
