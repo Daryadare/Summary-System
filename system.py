@@ -1,8 +1,6 @@
-import re
 import sys
-from ressys import (do_ffmpeg, do_pypandoc, whisper,
-                    fred_t5_sum, rugpt3_large,
-                    convert_to_text)
+from models import whisper, fred_t5_sum, rugpt3_large
+from tools import do_ffmpeg, do_pypandoc, convert_to_text
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -32,7 +30,6 @@ if __name__ == "__main__":
     else:
         f_path = str(input('Введите путь к текстовому файлу, включая его название,'
                            ' для которого вы хотите получить суммаризацию: \n'))
-        # new_filepath, fdir, res_w_ts, cleaned_text_sum = make_transcription(f_path)
 
         new_filepath, fdir, path_status, text_for_sum = do_pypandoc.convert_textfile(f_path)
         if path_status == 1:
@@ -65,25 +62,29 @@ if __name__ == "__main__":
     if sys_type == '1':
         outputs_to_write.append(res_w_ts)
     new_file_name, in_process_state = convert_to_text.create_file(fdir, outputs_to_write,
-                                                                  in_process_state=0)
+                                                                  in_process_state=0,
+                                                                  curr_file='')
 
     print(f'Результирующий файл успешно сформирован и доступен по пути: {new_file_name}\n')
 
     q_a = []
     question = str(input('Если у Вас появился вопрос по лекции, '
                          f'напишите свой вопрос, предварительно закрыв файл. '
-                         f'Если вопросов нет, введите Нет: '))
+                         f'Если вопросов нет, введите Нет: \n'))
     while question.lower() != 'нет':
         dir_answer = rugpt3_large.answer(question)
-        fin_answer = dir_answer[:dir_answer.find('<s>')]
-        q_a.append(fin_answer)
-        print(fin_answer)
+        if dir_answer:
+            fin_answer = dir_answer[:dir_answer.find('<s>')]
+            q_a.append(fin_answer)
+            print(fin_answer)
+        else:
+            print('Модель не смогла ответить на ваш вопрос, попробуйте переформулировать его \n')
         question = str(input('Если у Вас появился новый вопрос, задайте его.'
-                             'Если вопросов больше нет, напишите Нет: '))
+                             'Если вопросов больше нет, напишите Нет: \n'))
 
     if q_a:
         print('Выполняется обновление текстового файла с результатом работы...')
-        convert_to_text.create_file(fdir, q_a, in_process_state)
+        convert_to_text.create_file(fdir, q_a, in_process_state, new_file_name)
         print(f'Результирующий файл успешно сформирован и доступен по пути: {new_file_name}\n')
 
     print('Спасибо за использование системы!')
