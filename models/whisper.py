@@ -19,6 +19,23 @@ def load_model_processor():
 
     return model, processor, torch_dtype
 
+
+def remove_stop_words(text: str):
+    stop_words = [
+        "как бы", "кстати", "ну", "короче",
+        "вот", "вообще", "как-то", "так сказать",
+        "собственно", "таки", "еще", "вроде"
+    ]
+    stop_words_pattern = re.compile(r'\b(?:' + '|'.join(re.escape(word)
+                                                        for word in stop_words) +
+                                    r')\b',
+                                    re.IGNORECASE)
+
+    cleaned_text = stop_words_pattern.sub('', text)
+    cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
+    return cleaned_text
+
+
 def clean_whisper_output(res_w: str) -> tuple[str, str]:
     clean_text = res_w[:res_w.find('chunks')]
     pattern = r"'text': '([^']+)'"
@@ -33,7 +50,10 @@ def clean_whisper_output(res_w: str) -> tuple[str, str]:
     for string in cleaned_strings:
         res_w_ts += string
 
-    return res_w_ts, text_sum
+    cleaned_text_sum = remove_stop_words(text_sum)
+    cleaned_res_w_ts = remove_stop_words(res_w_ts)
+
+    return cleaned_res_w_ts, cleaned_text_sum
 
 
 def transcribe(filepath: str):
