@@ -3,16 +3,16 @@ from models import whisper, fred_t5_sum, rugpt3_large
 from tools import do_ffmpeg, do_pypandoc, convert_to_text
 
 
-if __name__ == "__main__":
-
+def sys_work():
+    """ Функция для связи модулей и взаимодействия с пользователем """
     outputs_to_write = []
     sys_type = str(input('Введите цифру соответствующую, типу данных,'
                          'с которым вы хотите работать: \n 1. Аудио- или видеофайл \n '
                          '2. Текстовый файл \n'))
 
     if sys_type == '1':
-        f_path = str(input('Введите путь к аудио- или видеофайлу, для которого вы хотите получить '
-                           'транскрипцию: '))
+        f_path = str(input('Введите путь к аудио- или видеофайлу, включая его название,'
+                           'для которого вы хотите получить транскрипцию: \n'))
         new_filepath, fdir, path_status = do_ffmpeg.convert_file(f_path)
         if path_status == 1:
             print('Ваш файл был успешно преобразован к необходимому формату .mp3!')
@@ -62,7 +62,6 @@ if __name__ == "__main__":
     new_file_name, in_process_state = convert_to_text.create_file(fdir, outputs_to_write,
                                                                   in_process_state=0,
                                                                   curr_file='')
-
     print(f'Результирующий файл успешно сформирован и доступен по пути: {new_file_name}\n')
 
     q_a = []
@@ -86,4 +85,8 @@ if __name__ == "__main__":
         print(f'Результирующий файл успешно сформирован и доступен по пути: {new_file_name}\n')
 
     print('Спасибо за использование системы!')
+
+
+if __name__ == "__main__":
+    sys_work()
     sys.exit()
