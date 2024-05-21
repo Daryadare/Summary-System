@@ -5,13 +5,21 @@ from transformers import logging
 logging.set_verbosity_error()
 
 
-def make_summ(input_text: str, tokens_size: int):
-
+def make_summ(input_text: str, tokens_size: int) -> str:
+    """
+    Функция для получения суммаризации текста.
+    :param input_text: очищенный результат работы модели Whisper-large-v3
+    :param tokens_size: размер суммаризации
+    :return: результат работы модели FRED-T5-Summarizer - суммаризация входного текста
+    """
     with suppress_output.SuppressOutput():
+        """ Полуение доступа к токенайзеру """
         tokenizer = GPT2Tokenizer.from_pretrained('RussianNLP/FRED-T5-Summarizer',
                                                   eos_token='</s>')
+        """ Полуение доступа к модели """
         model = T5ForConditionalGeneration.from_pretrained('RussianNLP/FRED-T5-Summarizer')
 
+        """ Указание задачи модели и текст для суммаризации """
         prompt = '<LM> Выдели главную информацию из текста:\n' + input_text
         input_ids = torch.tensor([tokenizer.encode(prompt)])
         outputs = model.generate(input_ids,

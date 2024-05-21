@@ -7,7 +7,12 @@ logging.set_verbosity_error()
 
 
 def load_model_processor():
-
+    """
+    Функция для получения доступа к модели и процессора и настройки типа тензоров.
+    :return: модель, процессор и тип тензоров
+    """
+    """ Если вычисления проводятся на CPU - тип тензоров float16,
+        если вычисления проводятся на GPU - тип тензоров float32 """
     torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
 
     model_id = "openai/whisper-large-v3"
@@ -20,7 +25,13 @@ def load_model_processor():
     return model, processor, torch_dtype
 
 
-def remove_stop_words(text: str):
+def remove_stop_words(text: str) -> str:
+    """
+    Функция очистки текста от дискурсивных слов
+    :param text: текст для очистки от дискурсивных слов
+    :return: текст, очищенный от дискурсивных слов
+    """
+    """Определяем набор слов-паразитов"""
     stop_words = [
         "как бы", "кстати", "ну", "короче",
         "вот", "вообще", "как-то", "так сказать",
@@ -31,17 +42,29 @@ def remove_stop_words(text: str):
                                     r')\b',
                                     re.IGNORECASE)
 
+    """ Удаление слов-паразитов из текста"""
     cleaned_text = stop_words_pattern.sub('', text)
+    """ Удаление лишних пробелов"""
     cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
     return cleaned_text
 
 
 def clean_whisper_output(res_w: str) -> tuple[str, str]:
+    """
+    Функция для очистки результата работы модели транскрибации.
+    :param res_w: результат работы модели Whisper-large-v3
+    :return: текст, очищенный от всех разметок, кроме временных меток, для записи
+             в результирующий текстовый файл;
+             текст, очищенный от дополнительных разметок, для подачи
+             в модель суммаризации FRED-T5-Summarizer
+    """
+    """ Очистка текста без временных меток для подачи на вход модели суммаризации"""
     clean_text = res_w[:res_w.find('chunks')]
     pattern = r"'text': '([^']+)'"
     matches = re.findall(pattern, clean_text)
     text_sum = ' '.join(matches)
 
+    """ Очистка текста с сохранением временных меток для записи в текстовый файл"""
     chunks_text = res_w[res_w.find('chunks'):res_w.rfind('}]}')]
     res_w_ts = ''
     pattern = r"'timestamp': \((\d+\.\d+), (\d+\.\d+)\), 'text': '([^']+)'"
@@ -56,8 +79,13 @@ def clean_whisper_output(res_w: str) -> tuple[str, str]:
     return cleaned_res_w_ts, cleaned_text_sum
 
 
-def transcribe(filepath: str):
-
+def transcribe(filepath: str) -> str:
+    """
+    Функция для загрузки модели и процессора, получения транскрибации и
+    очистки полученной транскрипции.
+    :param filepath: путь к аудиофайлу формата mp3, который нужно транскрибировать
+    :return: транскрипция входного аудиофайла
+    """
     with suppress_output.SuppressOutput():
         model, processor, torch_dtype = load_model_processor()
 
