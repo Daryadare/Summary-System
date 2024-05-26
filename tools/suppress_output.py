@@ -3,6 +3,9 @@ import os
 
 
 class SuppressOutput:
+    """
+    Класс для подавления вывода используемыми моделями путем перенаправления
+    """
     def __enter__(self):
         self._original_stdout = sys.stdout
         self._original_stderr = sys.stderr
